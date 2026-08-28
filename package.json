@@ -1,0 +1,205 @@
+{
+	"name": "claude-subagents-viewer",
+	"displayName": "Claude Subagents Viewer",
+	"description": "Panel lateral en vivo de los subagentes de Claude Code: quien esta corriendo, que herramienta ejecuta ahora, cuanto lleva y que informe entrego al terminar. Con dashboard grafico y detalle por subagente.",
+	"version": "0.2.0",
+	"publisher": "JuanCamiloZapataVelez",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/camilozv21/CLAUDE-SUBAGENTS-VIEWER.git"
+	},
+	"bugs": {
+		"url": "https://github.com/camilozv21/CLAUDE-SUBAGENTS-VIEWER/issues"
+	},
+	"homepage": "https://github.com/camilozv21/CLAUDE-SUBAGENTS-VIEWER#readme",
+	"engines": {
+		"vscode": "^1.85.0"
+	},
+	"categories": [
+		"Visualization",
+		"Other"
+	],
+	"keywords": [
+		"claude",
+		"claude code",
+		"subagents",
+		"agents",
+		"monitor"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "claudeSubagents",
+					"title": "Claude Subagents",
+					"icon": "media/robot.svg"
+				}
+			]
+		},
+		"views": {
+			"claudeSubagents": [
+				{
+					"type": "webview",
+					"id": "claudeSubagents.panel",
+					"name": "Subagentes",
+					"icon": "media/robot.svg",
+					"contextualTitle": "Claude Subagents"
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "claudeSubagents.openDashboard",
+				"title": "Abrir panel grafico",
+				"category": "Claude Subagents",
+				"icon": "$(graph)"
+			},
+			{
+				"command": "claudeSubagents.refresh",
+				"title": "Refrescar",
+				"category": "Claude Subagents",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "claudeSubagents.focus",
+				"title": "Mostrar panel de subagentes",
+				"category": "Claude Subagents"
+			},
+			{
+				"command": "claudeSubagents.toggleWorkspaceOnly",
+				"title": "Alternar ambito: este workspace / todos los proyectos",
+				"category": "Claude Subagents"
+			},
+			{
+				"command": "claudeSubagents.openSettings",
+				"title": "Abrir ajustes",
+				"category": "Claude Subagents",
+				"icon": "$(gear)"
+			},
+			{
+				"command": "claudeSubagents.openDetail",
+				"title": "Abrir detalle del subagente",
+				"category": "Claude Subagents"
+			},
+			{
+				"command": "claudeSubagents.openTranscript",
+				"title": "Abrir transcript JSONL",
+				"category": "Claude Subagents"
+			},
+			{
+				"command": "claudeSubagents.copyPrompt",
+				"title": "Copiar prompt del subagente",
+				"category": "Claude Subagents"
+			},
+			{
+				"command": "claudeSubagents.copyReport",
+				"title": "Copiar informe final",
+				"category": "Claude Subagents"
+			}
+		],
+		"menus": {
+			"view/title": [
+				{
+					"command": "claudeSubagents.openDashboard",
+					"when": "view == claudeSubagents.panel",
+					"group": "navigation@0"
+				},
+				{
+					"command": "claudeSubagents.refresh",
+					"when": "view == claudeSubagents.panel",
+					"group": "navigation@1"
+				},
+				{
+					"command": "claudeSubagents.openSettings",
+					"when": "view == claudeSubagents.panel",
+					"group": "navigation@2"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "claudeSubagents.openDetail",
+					"when": "false"
+				},
+				{
+					"command": "claudeSubagents.openTranscript",
+					"when": "false"
+				},
+				{
+					"command": "claudeSubagents.copyPrompt",
+					"when": "false"
+				},
+				{
+					"command": "claudeSubagents.copyReport",
+					"when": "false"
+				}
+			]
+		},
+		"configuration": {
+			"title": "Claude Subagents Viewer",
+			"properties": {
+				"claudeSubagents.claudeHome": {
+					"type": "string",
+					"default": "",
+					"description": "Ruta al directorio de Claude Code. Vacio = $CLAUDE_CONFIG_DIR o ~/.claude"
+				},
+				"claudeSubagents.refreshIntervalMs": {
+					"type": "number",
+					"default": 2000,
+					"minimum": 500,
+					"description": "Intervalo de refresco en milisegundos."
+				},
+				"claudeSubagents.onlyCurrentWorkspace": {
+					"type": "boolean",
+					"default": true,
+					"description": "Mostrar solo las sesiones cuyo cwd esta dentro del workspace abierto. Tambien se cambia desde el selector de ambito del panel lateral."
+				},
+				"claudeSubagents.maxSessions": {
+					"type": "number",
+					"default": 25,
+					"description": "Numero maximo de sesiones recientes a inspeccionar por proyecto."
+				},
+				"claudeSubagents.sessionMaxAgeDays": {
+					"type": "number",
+					"default": 14,
+					"description": "Ignorar sesiones sin actividad en los ultimos N dias (0 = sin limite)."
+				},
+				"claudeSubagents.runningThresholdSeconds": {
+					"type": "number",
+					"default": 90,
+					"description": "Un subagente sin finalizar cuya ultima actividad supera este umbral se marca como detenido."
+				},
+				"claudeSubagents.maxEvents": {
+					"type": "number",
+					"default": 500,
+					"description": "Maximo de eventos conservados por subagente."
+				},
+				"claudeSubagents.showThinking": {
+					"type": "boolean",
+					"default": true,
+					"description": "Mostrar los bloques de razonamiento del subagente en el panel de detalle."
+				},
+				"claudeSubagents.notifyOnFinish": {
+					"type": "boolean",
+					"default": false,
+					"description": "Notificar cuando un subagente termina."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"package": "npx --yes @vscode/vsce package --no-dependencies"
+	},
+	"devDependencies": {
+		"@types/node": "^20.14.0",
+		"@types/vscode": "^1.85.0",
+		"typescript": "^5.6.3"
+	}
+}
