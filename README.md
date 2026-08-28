@@ -117,3 +117,4 @@ Los botones de la cabecera del panel abren el dashboard y alternan los filtros Â
 - Solo lee lo que hay en disco: no se conecta al proceso de Claude Code, asÃ­ que no puede cancelar ni relanzar agentes.
 # CLAUDE-SUBAGENTS-VIEWER
 # CLAUDE-SUBAGENTS-VIEWER
+# CLAUDE-SUBAGENTS-VIEWER
