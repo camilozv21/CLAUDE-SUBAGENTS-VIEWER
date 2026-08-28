@@ -115,8 +115,13 @@ function countInto(counts: Counts, status: AgentStatus): void {
   }
 }
 
+/** Collapses whitespace and drops the markdown markers that read as noise in a one-liner. */
 function oneLine(text: string, max: number): string {
-  const line = text.replace(/\s+/g, ' ').trim();
+  const line = text
+    .replace(/```[a-z]*/g, ' ')
+    .replace(/[*_`#>]+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   return line.length > max ? `${line.slice(0, max - 1)}…` : line;
 }
 

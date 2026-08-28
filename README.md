@@ -6,44 +6,41 @@ No necesita ninguna API ni configuración de Claude Code: lee directamente los t
 
 ## Qué muestra
 
-### Panel gráfico (botón 📊 en la cabecera del panel, o clic en la barra de estado)
-
-Un dashboard que se refresca solo mientras los subagentes trabajan:
-
-- **Fila de KPIs** con la cifra grande de subagentes ejecutando ahora, más completados, detenidos, herramientas y tokens.
-- **Gantt de actividad**: una barra por subagente sobre un eje de tiempo real, coloreada por estado, con una línea vertical marcando *ahora*. Se dibuja una sesión a la vez (sesiones distintas están separadas por horas o días y compartir eje aplastaría todas las barras).
-- **Tarjetas** por subagente: borde de color según estado, insignias de tipo y fase, la herramienta que ejecuta en este momento, y una **tira de actividad** donde cada celda es una llamada a herramienta coloreada por cuánto tardó (rampa azul rápida → lenta, roja si falló). Se ve de un vistazo dónde se atasca cada agente.
-- **Barras de herramientas más usadas** en toda la flota.
-- **Filtros** de sesión y "solo activos", más una **vista de tabla** con todos los valores en texto.
-
-Todo se pinta con una paleta validada con el validador de la guía de visualización (separación CVD y contraste comprobados en tema claro y oscuro). El estado nunca depende solo del color: cada uno lleva glifo (▶ ✓ ⏸) y etiqueta, y la tabla repite todos los valores.
+Las tres vistas comparten un mismo sistema de diseño (`src/ui.ts`): paleta de estados validada en tema claro y oscuro, iconos por categoría de herramienta, colores por tipo de subagente y tooltips explicativos en cada elemento. El estado nunca depende solo del color: siempre lleva icono, etiqueta y una frase que explica qué significa.
 
 ### Panel lateral (icono de robot en la barra de actividad)
 
-```
-● bot                    ▶2   2 activos · 13 subagentes · hace 1m
-  ⛓ inbox-whatsapp-like-panels    ▶1   10 agentes · 18m
-      ⟳ recon:scroll-live    ▶   ejecutando · ▶ Bash: npm run typecheck · 4m · 44 herr.
-          Bash               npm run typecheck
-          Read               app/inbox/page.tsx
-          razonando          El scroll se rompe cuando el contenedor…
-      ✓ recon:code-map       ✓   Reconocimiento · completado · 9m 33s · 40 herr.
-```
+Es un webview propio, no un árbol nativo, así que cada subagente es una **tarjeta** con color de estado:
 
-Etiquetas coloreadas e insignias de estado (▶ ✓ ⏸) sobre cada subagente, y un contador azul de agentes activos sobre cada sesión y workflow.
+- **Cabecera viva**: «2 subagentes activos ahora · en 1 sesión · último cambio hace 3 s», y cuatro contadores (activos, listos, detenidos, cancelados) que funcionan como **filtros de un clic**. Debajo, buscador (nombre, tipo, herramienta, fase, modelo) y selector de ámbito («Solo este proyecto» / «Todos los proyectos») con el número de sesiones de cada uno. Cuando hay un filtro activo se muestra «Mostrando 3 de 25 · estado ejecutando · quitar».
+- **Sesiones**: carpeta de trabajo, pastilla «abierta» (hay un proceso de Claude Code vivo) o «cerrada», desde dónde se lanzó (VS Code / terminal), número de subagentes y workflows, herramientas con error, última actividad y una barra apilada con la proporción de estados. Colapsables; con acciones «gráfico» (dashboard filtrado por esa sesión) y «carpeta».
+- **Workflows**: agrupan a sus agentes con el nombre del script, barra «5 de 10 completados», chips de fase con el número de agentes en cada una (la fase en curso resaltada) y estado global.
+- **Tarjeta de subagente**: icono de estado (anillo girando si ejecuta), nombre (con sufijo `#id` cuando varios comparten prompt), tiempo transcurrido **en vivo**, badges de tipo, fase, modelo («Opus 5») y anidamiento; y según el estado:
+  - **Ejecutando** → línea «AHORA» con icono y nombre de la herramienta, su resumen (el comando, el archivo…) y cuánto lleva en esa llamada; si supera 60 s aparece un aviso «puede ser un comando largo o un proceso colgado».
+  - **Completado** → extracto del informe final.
+  - **Detenido** → «Sin actividad desde hace 6 m; no cerró su turno» (el tooltip explica las causas habituales).
+  - **Cancelado** → «Detenido por el usuario tras 3 m y 12 herramientas».
+  - Pie con herramientas, errores (en rojo), tokens y la **tira de actividad** (una celda por llamada, coloreada por duración; rojo = error; punteada = en curso).
+  - Al **expandir** (›): tarea recibida, herramientas usadas con recuento, los últimos 8 pasos con icono, duración y error, y botones «Ver detalle», «Transcript», «Informe», «Prompt».
+- **Estado vacío** que explica qué hace falta para que aparezca algo y, si hay sesiones ocultas por el ámbito, un botón para verlas.
+- **Pie** con leyenda desplegable (estados, tira de actividad, iconos de herramienta, umbral) y «actualizado hace N s».
 
-- **Sesión** → carpeta de trabajo, si el proceso de Claude Code sigue vivo, cuántos subagentes tiene.
-- **Workflow** (`⛓`) → agrupa los agentes lanzados por un mismo workflow, con sus fases.
-- **Subagente** → tipo, fase, estado, duración, herramientas y, si está corriendo, **la herramienta que ejecuta ahora**.
-- **Actividad** → los últimos eventos del subagente.
+Los tiempos avanzan cada segundo en el propio panel; los datos se refrescan al cambiar los transcripts.
+
+### Panel gráfico (botón 📊 en la cabecera del panel, o clic en la barra de estado)
+
+- **Barra de filtros** pegajosa: sesión, estado (Todos / Ejecutando / Completados / Con problemas), búsqueda y vista tarjetas/tabla.
+- **KPIs** con cifra grande y sublabel que explica qué cuenta cada uno; los de estado actúan como filtro.
+- **Gantt de actividad** de una sesión (con línea de «ahora» y tooltip por barra).
+- **Tarjetas** con la misma anatomía que el panel lateral, **herramientas más usadas** coloreadas por categoría, reparto **por categoría** y **tabla** con todos los valores en texto.
 
 ### Panel de detalle
 
-Clic en cualquier subagente (en el árbol o en una tarjeta): prompt recibido, línea de tiempo completa con entrada y resultado de cada herramienta, uso de tokens, e informe final. Se actualiza solo mientras el subagente trabaja.
+Clic en cualquier subagente: cabecera fija con badges, estado y su explicación, botones (transcript, copiar prompt, copiar informe, revelar carpeta), barra «AHORA» con tiempo en vivo, tarjetas de estadísticas (duración, herramientas y errores, mensajes, tokens con barra entrada/salida/caché, última actividad), tira de actividad, chips de herramientas usadas, informe final e **línea de tiempo** numerada (#1, #2…) con filtros (Todo / Herramientas / Errores / Razonamiento / Respuestas) y búsqueda; cada evento despliega su entrada y su resultado.
 
 ### Barra de estado
 
-`⟳ 3 subagentes` cuando hay actividad. Clic para abrir el panel gráfico.
+`⟳ 3 subagentes` cuando hay actividad; `🤖 N` cuando no. Clic para abrir el panel gráfico.
 
 ## Instalación
 
@@ -51,8 +48,8 @@ Clic en cualquier subagente (en el árbol o en una tarjeta): prompt recibido, l�
 cd D:\ANTHROPIC\claude-subagents-viewer
 npm install
 npm run compile
-npm run package          # genera claude-subagents-viewer-0.1.0.vsix
-code --install-extension claude-subagents-viewer-0.1.0.vsix
+npm run package          # genera claude-subagents-viewer-0.2.0.vsix
+code --install-extension claude-subagents-viewer-0.2.0.vsix --force
 ```
 
 Para desarrollar: abre la carpeta en VS Code y pulsa `F5` (Ejecutar extensión).
@@ -83,6 +80,7 @@ La extensión combina las tres fuentes: el `.meta.json` da el tipo y la descripc
 | `ejecutando` | el último turno no cerró y el archivo se escribió hace menos de 90 s |
 | `completado` | el último turno es texto con `stop_reason: end_turn`, o el journal lo marca `done` |
 | `detenido` | quedó a medias y lleva más de 90 s sin escribir (workflow cancelado, sesión cerrada) |
+| `cancelado` | el `.meta.json` lleva `stoppedByUser: true` y el turno no se cerró: el usuario lo paró (Esc / stop) |
 
 El umbral es configurable (`claudeSubagents.runningThresholdSeconds`).
 
@@ -96,19 +94,17 @@ El refresco se dispara por dos vías: un `fs.watch` recursivo sobre `~/.claude/p
 
 | Ajuste | Por defecto | Qué hace |
 |---|---|---|
-| `claudeSubagents.onlyCurrentWorkspace` | `true` | Solo sesiones cuyo `cwd` está dentro del workspace abierto |
-| `claudeSubagents.onlyActive` | `false` | Solo subagentes en ejecución |
+| `claudeSubagents.onlyCurrentWorkspace` | `true` | Solo sesiones cuyo `cwd` está dentro del workspace abierto (también se cambia desde el selector de ámbito del panel) |
 | `claudeSubagents.refreshIntervalMs` | `2000` | Intervalo del temporizador de respaldo |
 | `claudeSubagents.runningThresholdSeconds` | `90` | Antigüedad máxima para considerar un agente vivo |
 | `claudeSubagents.maxSessions` | `25` | Sesiones recientes a inspeccionar |
 | `claudeSubagents.sessionMaxAgeDays` | `14` | Ignorar sesiones más antiguas |
-| `claudeSubagents.treeActivityItems` | `12` | Eventos recientes bajo cada subagente (`0` los oculta) |
 | `claudeSubagents.maxEvents` | `500` | Eventos conservados en memoria por subagente |
 | `claudeSubagents.showThinking` | `true` | Mostrar bloques de razonamiento |
 | `claudeSubagents.notifyOnFinish` | `false` | Notificar cuando un subagente termina |
 | `claudeSubagents.claudeHome` | `""` | Ruta alternativa a `~/.claude` |
 
-Los botones de la cabecera del panel abren el dashboard y alternan los filtros «solo activos» y «solo este workspace».
+Los botones de la cabecera del panel abren el dashboard, refrescan y abren los ajustes. Los filtros de estado y el ámbito se manejan dentro del propio panel.
 
 ## Limitaciones conocidas
 
