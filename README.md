@@ -115,3 +115,4 @@ Los botones de la cabecera del panel abren el dashboard y alternan los filtros �
 - Un subagente que muere sin escribir su turno final aparece como `detenido`, no como fallido: el transcript no distingue entre «cancelado» y «cayó por error».
 - El journal del workflow (etiquetas y fases) se escribe cuando el workflow avanza, no en tiempo real por agente. Mientras corre, los agentes sin etiqueta muestran la primera línea útil de su prompt; si varios comparten el mismo prompt base, se les añade un `#id` corto para distinguirlos.
 - Solo lee lo que hay en disco: no se conecta al proceso de Claude Code, así que no puede cancelar ni relanzar agentes.
+# CLAUDE-SUBAGENTS-VIEWER
