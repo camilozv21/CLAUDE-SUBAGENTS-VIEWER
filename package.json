@@ -2,7 +2,7 @@
 	"name": "claude-subagents-viewer",
 	"displayName": "Claude Subagents Viewer",
 	"description": "Panel lateral en vivo de los subagentes de Claude Code: quien esta corriendo, que herramienta ejecuta ahora, cuanto lleva y que informe entrego al terminar. Con dashboard grafico y detalle por subagente.",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"publisher": "JuanCamiloZapataVelez",
 	"license": "MIT",
 	"repository": {
